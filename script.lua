@@ -1,5 +1,5 @@
 -- ====================================================================
---                 AUTO FISH V4.0 - RAYFIELD UI EDITION
+--                 AUTO FISH V4.0 - FLUX UI EDITION
 --          Based on Working test.lua Fishing Method
 -- ====================================================================
 
@@ -79,7 +79,7 @@ local LOCATIONS = {
     ["Mount Hallow"] = CFrame.new(2136.62305, 78.9163895, 3272.50439, -0.977613986, -1.77645827e-08, 0.210406482, -2.42338203e-08, 1, -2.81680421e-08, -0.210406482, -3.26364251e-08, -0.977613986),
     ["Treasure Room"] = CFrame.new(-3606.34985, -266.57373, -1580.97339, 0.998743415, 1.12141152e-13, -0.0501160324, -1.56847693e-13, 1, -8.88127842e-13, 0.0501160324, 8.94872392e-13, 0.998743415),
     ["Kohana"] = CFrame.new(-663.904236, 3.04580712, 718.796875, -0.100799225, -2.14183729e-08, -0.994906783, -1.12300391e-08, 1, -2.03902459e-08, 0.994906783, 9.11752096e-09, -0.100799225),
-    ["Underground Cellar"] = CFrame.new(2109.52148, -94.1875076, -708.609131, 0.418592364, 3.34794485e-08, -0.908174217, -5.24141512e-08, 1, 1.27060247e-08, 0.908174217, 4.22825366e-08, 0.418592364),
+    ["Underground Cellar"] = CFrame.new(2109.52148, -94.1875076, -708.609131, 0.418592364, 3.34794485e-08, -0.908174217, -5.24141512e-08, 1, 1.27060247e-08, 0.908174217, 4.22825306e-08, 0.418592364),
     ["Ancient Jungle"] = CFrame.new(1831.71362, 6.62499952, -299.279175, 0.213522509, 1.25553285e-07, -0.976938128, -4.32026184e-08, 1, 1.19074642e-07, 0.976938128, 1.67811702e-08, 0.213522509),
     ["Sacred Temple"] = CFrame.new(1466.92151, -21.8750591, -622.835693, -0.764787138, 8.14444334e-09, 0.644283056, 2.31097452e-08, 1, 1.4791004e-08, -0.644283056, 2.6201187e-08, -0.764787138)
 }
@@ -134,6 +134,35 @@ local function getNetworkEvents()
 end
 
 local Events = getNetworkEvents()
+
+-- ====================================================================
+--                     MODULES FOR AUTO FAVORITE (Added Missing Dependencies)
+-- ====================================================================
+local ItemUtility = require(ReplicatedStorage.Shared.ItemUtility)
+local Replion = require(ReplicatedStorage.Packages.Replion)
+local PlayerData = Replion.Client:WaitReplion("Data")
+
+-- ====================================================================
+--                     RARITY SYSTEM (Added Missing Dependencies)
+-- ====================================================================
+local RarityTiers = {
+    Common = 1,
+    Uncommon = 2,
+    Rare = 3,
+    Epic = 4,
+    Legendary = 5,
+    Mythic = 6,
+    Secret = 7
+}
+
+local function getRarityValue(rarity)
+    return RarityTiers[rarity] or 0
+end
+
+local function getFishRarity(itemData)
+    if not itemData or not itemData.Data then return "Common" end
+    return itemData.Data.Rarity or "Common"
+end
 
 -- ====================================================================
 --                     TELEPORT SYSTEM (from dev1.lua)
@@ -451,27 +480,30 @@ task.spawn(function()
 end)
 
 -- ====================================================================
---                     RAYFIELD UI
+--                     FLUX UI (MODERN & STABLE)
 -- ====================================================================
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Dvrkn/Blood-UI/main/source.lua"))()
 
-local Window = Rayfield:CreateWindow({
+local Window = Library:MakeWindow({
     Name = "🎣 Auto Fish V4.0",
-    LoadingTitle = "Ultra-Fast Fishing",
-    LoadingSubtitle = "Working Method Implementation",
-    ConfigurationSaving = {
-        Enabled = false
-    }
+    HidePremium = false,
+    SaveConfig = false, -- Kita pakai sistem saveConfig manual Anda
+    IntroEnabled = true,
+    IntroText = "Ultra-Fast Fishing"
 })
 
 -- ====== MAIN TAB ======
-local MainTab = Window:CreateTab("🏠 Main", 4483362458)
+local MainTab = Window:MakeTab({
+    Name = "🏠 Main",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
 
-MainTab:CreateSection("Auto Fishing")
+MainTab:AddSection("Auto Fishing")
 
-local BlatantToggle = MainTab:CreateToggle({
+MainTab:AddToggle({
     Name = "⚡ BLATANT MODE (3x Faster!)",
-    CurrentValue = Config.BlatantMode,
+    Default = Config.BlatantMode,
     Callback = function(value)
         Config.BlatantMode = value
         print("[Blatant Mode] " .. (value and "⚡ ENABLED - SUPER FAST!" or "🔴 Disabled - Normal speed"))
@@ -479,9 +511,9 @@ local BlatantToggle = MainTab:CreateToggle({
     end
 })
 
-local AutoFishToggle = MainTab:CreateToggle({
+MainTab:AddToggle({
     Name = "🤖 Auto Fish",
-    CurrentValue = Config.AutoFish,
+    Default = Config.AutoFish,
     Callback = function(value)
         Config.AutoFish = value
         fishingActive = value
@@ -498,9 +530,9 @@ local AutoFishToggle = MainTab:CreateToggle({
     end
 })
 
-local AutoCatchToggle = MainTab:CreateToggle({
+MainTab:AddToggle({
     Name = "🎯 Auto Catch (Extra Speed)",
-    CurrentValue = Config.AutoCatch,
+    Default = Config.AutoCatch,
     Callback = function(value)
         Config.AutoCatch = value
         print("[Auto Catch] " .. (value and "🟢 Enabled" or "🔴 Disabled"))
@@ -508,7 +540,9 @@ local AutoCatchToggle = MainTab:CreateToggle({
     end
 })
 
-MainTab:CreateInput({
+MainTab:AddSection("Delays")
+
+MainTab:AddInput({
     Name = "Fish Delay (seconds)",
     PlaceholderText = "Default: 0.9",
     RemoveTextAfterFocusLost = false,
@@ -524,7 +558,7 @@ MainTab:CreateInput({
     end
 })
 
-MainTab:CreateInput({
+MainTab:AddInput({
     Name = "Catch Delay (seconds)",
     PlaceholderText = "Default: 0.2",
     RemoveTextAfterFocusLost = false,
@@ -540,11 +574,11 @@ MainTab:CreateInput({
     end
 })
 
-MainTab:CreateSection("Auto Sell")
+MainTab:AddSection("Auto Sell")
 
-local AutoSellToggle = MainTab:CreateToggle({
+MainTab:AddToggle({
     Name = "💰 Auto Sell (Keeps Favorited)",
-    CurrentValue = Config.AutoSell,
+    Default = Config.AutoSell,
     Callback = function(value)
         Config.AutoSell = value
         print("[Auto Sell] " .. (value and "🟢 Enabled" or "🔴 Disabled"))
@@ -552,7 +586,7 @@ local AutoSellToggle = MainTab:CreateToggle({
     end
 })
 
-MainTab:CreateInput({
+MainTab:AddInput({
     Name = "Sell Delay (seconds)",
     PlaceholderText = "Default: 30",
     RemoveTextAfterFocusLost = false,
@@ -568,20 +602,24 @@ MainTab:CreateInput({
     end
 })
 
-MainTab:CreateButton({
+MainTab:AddButton({
     Name = "💰 Sell All Now",
     Callback = function()
         simpleSell()
     end
 })
 
--- ====== TELEPORT TAB (from dev1.lua) ======
-local TeleportTab = Window:CreateTab("🌍 Teleport", nil)
+-- ====== TELEPORT TAB ======
+local TeleportTab = Window:MakeTab({
+    Name = "🌍 Teleport",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
 
-TeleportTab:CreateSection("📍 Locations")
+TeleportTab:AddSection("📍 Locations")
 
 for locationName, _ in pairs(LOCATIONS) do
-    TeleportTab:CreateButton({
+    TeleportTab:AddButton({
         Name = locationName,
         Callback = function()
             Teleport.to(locationName)
@@ -590,13 +628,17 @@ for locationName, _ in pairs(LOCATIONS) do
 end
 
 -- ====== SETTINGS TAB ======
-local SettingsTab = Window:CreateTab("⚙️ Settings", 4483362458)
+local SettingsTab = Window:MakeTab({
+    Name = "⚙️ Settings",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
 
-SettingsTab:CreateSection("Performance")
+SettingsTab:AddSection("Performance")
 
-local GPUToggle = SettingsTab:CreateToggle({
+SettingsTab:AddToggle({
     Name = "🖥️ GPU Saver Mode",
-    CurrentValue = Config.GPUSaver,
+    Default = Config.GPUSaver,
     Callback = function(value)
         Config.GPUSaver = value
         if value then
@@ -608,11 +650,11 @@ local GPUToggle = SettingsTab:CreateToggle({
     end
 })
 
-SettingsTab:CreateSection("Auto Favorite")
+SettingsTab:AddSection("Auto Favorite")
 
-local AutoFavoriteToggle = SettingsTab:CreateToggle({
+SettingsTab:AddToggle({
     Name = "⭐ Auto Favorite Fish",
-    CurrentValue = Config.AutoFavorite,
+    Default = Config.AutoFavorite,
     Callback = function(value)
         Config.AutoFavorite = value
         print("[Auto Favorite] " .. (value and "🟢 Enabled" or "🔴 Disabled"))
@@ -620,10 +662,10 @@ local AutoFavoriteToggle = SettingsTab:CreateToggle({
     end
 })
 
-local FavoriteRarityDropdown = SettingsTab:CreateDropdown({
+SettingsTab:AddDropdown({
     Name = "Favorite Rarity (Mythic/Secret Only)",
     Options = {"Mythic", "Secret"},
-    CurrentOption = Config.FavoriteRarity,
+    Default = Config.FavoriteRarity,
     Callback = function(option)
         Config.FavoriteRarity = option
         print("[Config] Favorite rarity set to: " .. option .. "+")
@@ -631,7 +673,7 @@ local FavoriteRarityDropdown = SettingsTab:CreateDropdown({
     end
 })
 
-SettingsTab:CreateButton({
+SettingsTab:AddButton({
     Name = "⭐ Favorite All Mythic/Secret Now",
     Callback = function()
         autoFavoriteByRarity()
@@ -639,9 +681,13 @@ SettingsTab:CreateButton({
 })
 
 -- ====== INFO TAB ======
-local InfoTab = Window:CreateTab("ℹ️ Info", 4483362458)
+local InfoTab = Window:MakeTab({
+    Name = "ℹ️ Info",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
 
-InfoTab:CreateParagraph({
+InfoTab:AddParagraph({
     Title = "Features",
     Content = [[
 • Fast Auto Fishing with BLATANT MODE
@@ -655,7 +701,7 @@ InfoTab:CreateParagraph({
     ]]
 })
 
-InfoTab:CreateParagraph({
+InfoTab:AddParagraph({
     Title = "Blatant Mode Explained",
     Content = [[
 ⚡ BLATANT MODE METHOD:
@@ -674,14 +720,14 @@ How it's faster:
 })
 
 -- ====== STARTUP ======
-Rayfield:Notify({
+Library:Notify({
     Title = "Auto Fish Loaded",
     Content = "Ready to fish!",
-    Duration = 5,
-    Image = 4483362458
+    Time = 5
 })
 
 print("🎣 Auto Fish V4.0 - Loaded!")
+print("✅ Using FLUX UI (Modern & Stable)")
 print("✅ Using YOUR working fishing method")
 print("✅ Blatant Mode available")
 print("✅ Teleport system from dev1.lua integrated")
