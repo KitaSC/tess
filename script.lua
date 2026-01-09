@@ -136,35 +136,6 @@ end
 local Events = getNetworkEvents()
 
 -- ====================================================================
---                     MODULES FOR AUTO FAVORITE
--- ====================================================================
-local ItemUtility = require(ReplicatedStorage.Shared.ItemUtility)
-local Replion = require(ReplicatedStorage.Packages.Replion)
-local PlayerData = Replion.Client:WaitReplion("Data")
-
--- ====================================================================
---                     RARITY SYSTEM
--- ====================================================================
-local RarityTiers = {
-    Common = 1,
-    Uncommon = 2,
-    Rare = 3,
-    Epic = 4,
-    Legendary = 5,
-    Mythic = 6,
-    Secret = 7
-}
-
-local function getRarityValue(rarity)
-    return RarityTiers[rarity] or 0
-end
-
-local function getFishRarity(itemData)
-    if not itemData or not itemData.Data then return "Common" end
-    return itemData.Data.Rarity or "Common"
-end
-
--- ====================================================================
 --                     TELEPORT SYSTEM (from dev1.lua)
 -- ====================================================================
 local Teleport = {}
